@@ -400,7 +400,7 @@ python tests/test_templates.py    # 100 骨架沙箱真值自检（800 次实例
 
 - [MiniMind](https://github.com/jingyaogong/minimind)（jingyaogong/minimind-3, 64M）与 [Salesforce CodeGen-350M-mono](https://github.com/salesforce/CodeGen)：本次人工对比评测的基线模型，其权重通过 HuggingFace 镜像获取，仅用于评测对照；
 - [Python 官方文档（中文）](https://docs.python.org/zh-cn/3/tutorial/)：作为合成数据的措辞种子语料之一；
-- 所有从零训练社区的精神股东们——3 元电费和 2 小时显卡时间，也能换来一个诚实、可控、会拒绝的小模型。
+- 所有从零训练社区的精神股东们——30元GPU费用 和 8 小时显卡时间，也能换来一个诚实、可控、会拒绝的小模型。
 
 ---
 

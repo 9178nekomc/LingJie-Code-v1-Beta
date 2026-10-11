@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LingJie-Code 对话</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Microsoft YaHei", "Segoe UI", sans-serif;
+    background: #0f1220; color: #e8eaf6; height: 100vh;
+    display: flex; flex-direction: column;
+  }
+  header {
+    padding: 14px 20px; display: flex; align-items: center; gap: 12px;
+    background: #171b30; border-bottom: 1px solid #2a2f52;
+  }
+  header .logo {
+    width: 34px; height: 34px; border-radius: 50%;
+    background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='72' font-size='60'%3E%E2%9C%B3%3C/text%3E%3C/svg%3E") center/70% no-repeat;
+  }
+  header h1 { font-size: 17px; font-weight: 600; }
+  header .sub { font-size: 12px; color: #8a90c0; }
+  #chat { flex: 1; overflow-y: auto; padding: 18px; display: flex;
+          flex-direction: column; gap: 14px; }
+  .msg { max-width: 86%; border-radius: 12px; padding: 12px 15px;
+         line-height: 1.6; font-size: 14px; white-space: pre-wrap; }
+  .user { align-self: flex-end; background: #3b5bdb; color: #fff;
+          border-bottom-right-radius: 3px; }
+  .bot  { align-self: flex-start; background: #1c2140;
+          border: 1px solid #2a2f52; border-bottom-left-radius: 3px;
+          min-width: 380px; }
+  .tag { display: inline-block; font-size: 11px; padding: 2px 8px;
+         border-radius: 20px; font-weight: 600; }
+  .tag.ok { background: #1b4332; color: #74e6a2; }
+  .tag.no { background: #43221b; color: #ff9f8a; }
+  .chain { display: flex; flex-wrap: wrap; gap: 5px; margin: 6px 0; }
+  .chip {
+    font-size: 11px; font-family: Consolas, monospace;
+    padding: 2px 8px; border-radius: 6px; background: #141833;
+    border: 1px solid #2a2f52; color: #8a90c0;
+  }
+  .chip.hot { border-color: #3b5bdb; color: #c7d2fe; }
+  .chip.ok  { border-color: #1b4332; color: #74e6a2; }
+  .chip.bad { border-color: #5c2a20; color: #ff9f8a; }
+  pre {
+    background: #0d1020; border: 1px solid #2a2f52; border-radius: 8px;
+    padding: 10px 12px; overflow-x: auto; margin: 8px 0;
+    font-family: Consolas, monospace; font-size: 13px; color: #a7f3d0;
+    white-space: pre-wrap;
+  }
+  .stdout { color: #fbbf24; font-size: 13px; font-family: Consolas,
+            monospace; }
+  .meta { color: #93c5fd; font-size: 12px; font-family: Consolas,
+          monospace; white-space: pre-wrap; background: #0d1020;
+          border: 1px dashed #2a2f52; border-radius: 8px; padding: 8px 10px;
+          margin: 6px 0; }
+  .err { color: #ff9f8a; font-size: 13px; }
+  .elapsed { color: #565d8f; font-size: 11px; margin-top: 6px;
+             font-family: Consolas, monospace; }
+  #inputbar {
+    display: flex; gap: 10px; padding: 14px 18px;
+    background: #171b30; border-top: 1px solid #2a2f52;
+  }
+  #inp {
+    flex: 1; padding: 12px 15px; border-radius: 10px; font-size: 14px;
+    border: 1px solid #2a2f52; background: #0f1220; color: #e8eaf6;
+    outline: none;
+  }
+  #inp:focus { border-color: #3b5bdb; }
+  button {
+    padding: 12px 26px; border: none; border-radius: 10px;
+    background: #3b5bdb; color: #fff; font-size: 14px; cursor: pointer;
+    font-weight: 600;
+  }
+  button:disabled { background: #2a2f52; cursor: wait; }
+  .hint { padding: 8px 18px; font-size: 12px; color: #565d8f;
+          background: #12152a; }
+  .hint span { cursor: pointer; color: #93c5fd; margin-right: 10px; }
+  .cursor::after { content: "▌"; color: #93c5fd; animation: b 0.8s infinite; }
+  @keyframes b { 50% { opacity: 0; } }
+</style>
+</head>
+<body>
+<header>
+  <div class="logo"></div>
+  <div>
+    <h1>LingJie-Code-v1-Beta</h1>
+    <div class="sub">202M · 从零训练 · 本地推理 · 流式决策链 · 会拒绝也会写代码</div>
+  </div>
+</header>
+<div class="hint">试试：
+  <span onclick="ask(this)">打印Hello World</span>
+  <span onclick="ask(this)">用for循环从1到5，每次打印i</span>
+  <span onclick="ask(this)">获取用户输入，如果小于18就输出no，否则输出yes</span>
+  <span onclick="ask(this)">把列表 [3, 1, 2] 从小到大排序并打印</span>
+  <span onclick="ask(this)">帮我写个贪吃蛇游戏</span>
+</div>
+<div id="chat"></div>
+<div id="inputbar">
+  <input id="inp" placeholder="给 LingJie 出题（仅限 Python 基础：打印/循环/判断/简单算术…）" autofocus>
+  <button id="send" onclick="send()">发送</button>
+</div>
+<script>
+const chat = document.getElementById("chat");
+const inp = document.getElementById("inp");
+const btn = document.getElementById("send");
+
+function esc(s) {
+  return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+function add(html, cls) {
+  const d = document.createElement("div");
+  d.className = "msg " + cls;
+  d.innerHTML = html;
+  chat.appendChild(d);
+  chat.scrollTop = chat.scrollHeight;
+  return d;
+}
+function ask(el) { inp.value = el.textContent; send(); }
+
+const STAGE_NAME = {
+  intent: "① 意图判断", intent_done: null,
+  parse: "② 动作+数据拆解", parse_done: null,
+  verb: "③ 动作路由", verb_done: null,
+  template: "④ 骨架选择", template_done: null,
+  gen: "⑤ 代码生成", gen_done: null,
+  critic: "⑦ 语义审查", critic_done: null,
+  sandbox: "⑧ 沙箱断言", sandbox_done: null,
+  retry: "🔧 修复重试", repair: null, cannot: "✖ 拒绝"
+};
+
+async function send() {
+  const msg = inp.value.trim();
+  if (!msg || btn.disabled) return;
+  add(esc(msg), "user");
+  inp.value = "";
+  btn.disabled = true;
+
+  // 实时渲染容器
+  const box = add("", "bot");
+  const chips = document.createElement("div");
+  chips.className = "chain";
+  const body = document.createElement("div");
+  box.appendChild(chips);
+  box.appendChild(body);
+
+  let metaEl = null, codeEl = null, genText = "", metaText = "";
+  let sandboxInfo = null;
+
+  function chip(text, cls) {
+    const c = document.createElement("span");
+    c.className = "chip " + cls;
+    c.textContent = text;
+    chips.querySelectorAll(".hot").forEach(x => x.classList.remove("hot"));
+    c.classList.add("hot");
+    chips.appendChild(c);
+    chat.scrollTop = chat.scrollHeight;
+    return c;
+  }
+  function finalizeChips(cls) {
+    chips.querySelectorAll(".chip").forEach(x => { x.classList.remove("hot"); x.classList.add(cls); });
+  }
+
+  try {
+    const res = await fetch("/api/chat", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({message: msg})
+    });
+    const reader = res.body.getReader();
+    const dec = new TextDecoder();
+    let buf = "", final = null;
+
+    while (true) {
+      const {done, value} = await reader.read();
+      if (done) break;
+      buf += dec.decode(value, {stream: true});
+      let idx;
+      while ((idx = buf.indexOf("\n\n")) >= 0) {
+        const line = buf.slice(0, idx).trim();
+        buf = buf.slice(idx + 2);
+        if (!line.startsWith("data:")) continue;
+        const ev = JSON.parse(line.slice(5).trim());
+
+        if (ev.type === "token") {
+          if (ev.stage === "parse" && metaEl) {
+            metaText = ev.text;
+            metaEl.textContent = metaText;
+          } else if (ev.stage === "gen" && codeEl) {
+            genText = ev.text;
+            codeEl.textContent = genText;
+          }
+          chat.scrollTop = chat.scrollHeight;
+        } else if (ev.type === "done") {
+          final = ev.result;
+        } else if (ev.type === "error") {
+          body.innerHTML += '<div class="err">服务异常: ' + esc(ev.error) + "</div>";
+        } else if (ev.type === "stage") {
+          if (ev.stage.endsWith("_done")) {
+            if (ev.stage === "intent_done") {
+              chips.lastChild.textContent =
+                "① 意图判断 p=" + ev.p_code + (ev.p_code >= ev.threshold ? " 放行" : " 拦截");
+            }
+            if (ev.stage === "parse_done" && metaEl) metaEl.classList.remove("cursor");
+            if (ev.stage === "gen_done" && codeEl) codeEl.classList.remove("cursor");
+            if (ev.stage === "verb_done" && ev.verb) {
+              chips.lastChild.textContent = "③ 动作路由 → " + ev.verb + " (" + ev.conf + ")";
+            }
+            if (ev.stage === "template_done" && ev.cand_tids) {
+              chips.lastChild.textContent = "④ 骨架候选 " + ev.cand_tids.join(",");
+            }
+            if (ev.stage === "critic_done") {
+              chips.lastChild.textContent = "⑦ 语义审查 p=" + ev.p_consist;
+            }
+            if (ev.stage === "sandbox_done") {
+              sandboxInfo = ev;
+              chips.lastChild.textContent = ev.ok ? "⑧ 沙箱断言 ✓" : "⑧ 沙箱断言 ✖";
+              const d = document.createElement("div");
+              if (ev.ok) d.innerHTML = '<span class="stdout">▶ 沙箱实测通过' +
+                (ev.stdout && ev.stdout.trim() ? "，stdout: " + esc(ev.stdout) : "") + "</span>";
+              else d.innerHTML = '<span class="err">✖ 沙箱断言失败: ' + esc(ev.err || "") + "</span>";
+              body.appendChild(d);
+            }
+          } else {
+            const name = STAGE_NAME[ev.stage] ?? ev.stage;
+            let t = name;
+            if (ev.p_code !== undefined) t += " p=" + ev.p_code;
+            if (ev.verb) t += " → " + ev.verb;
+            if (ev.attempt > 0) t += " 第" + (ev.attempt + 1) + "次";
+            if (ev.msg) t += " · " + ev.msg;
+            chip(t, ev.stage === "retry" || ev.stage === "cannot" ? "bad" : "");
+            if (ev.stage === "parse") {
+              metaText = "";
+              metaEl = document.createElement("div");
+              metaEl.className = "meta cursor";
+              body.appendChild(metaEl);
+            }
+            if (ev.stage === "gen" && !codeEl) {
+              genText = "";
+              codeEl = document.createElement("pre");
+              codeEl.className = "cursor";
+              body.appendChild(codeEl);
+            }
+          }
+        }
+      }
+    }
+
+    if (final) {
+      if (final.status === "ok") {
+        finalizeChips("ok");
+        if (!codeEl && final.code) body.innerHTML += "<pre>" + esc(final.code) + "</pre>";
+        if (!sandboxInfo) body.innerHTML += '<span class="stdout">▶ 执行完成</span>';
+      } else {
+        finalizeChips("bad");
+        body.innerHTML += '<span class="tag no">✖ Cannot</span>' +
+          '<div class="err">' + esc(final.reason + " — " + final.detail) + "</div>";
+      }
+      box.innerHTML += '<div class="elapsed">总用时 ' + final.elapsed + "s · " +
+        (final.status === "ok" ? "代码经沙箱实测验证" : "拒绝是它的核心能力之一") + "</div>";
+    }
+  } catch (e) {
+    body.innerHTML += '<div class="err">请求失败: ' + esc(String(e)) + "</div>";
+  } finally {
+    btn.disabled = false;
+    inp.focus();
+    chat.scrollTop = chat.scrollHeight;
+  }
+}
+inp.addEventListener("keydown", e => { if (e.key === "Enter") send(); });
+</script>
+</body>
+</html>

@@ -258,6 +258,9 @@ git clone https://github.com/9178nekomc/LingJie-Code-v1-Beta.git
 cd LingJie-Code-v1-Beta
 ```
 
+自研分词器 `tokenizer/tokenizer.json`（8192 词表）已随仓库提供，且经过与发布权重的
+一致性验证（用 ckpt 探针：元数据生成逐字复原 + 意图拒绝 p=1.0），无需单独下载。
+
 从 [Releases](https://github.com/9178nekomc/LingJie-Code-v1-Beta/releases) 下载 `ckpt_final.pt`（801MB，含模型配置），放置到 `runs/sft3/ckpt_final.pt`：
 
 ```bash

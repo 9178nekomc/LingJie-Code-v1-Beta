@@ -95,7 +95,7 @@ LingJie-Code 的核心主张是：**小型模型不应该模仿大模型的"自�
 真实录屏：在本地 Web 服务中与模型对话，完整展示 8 关决策链的流式输出——
 意图判断 → 动作+数据拆解（逐 token 打字机）→ 动作路由 → 骨架候选 → 代码生成 → 语义审查 → 沙箱实测 stdout。
 
-[▶ 观看流式决策链演示（assets/demo.mp4，建议点击在 GitHub 内播放）](assets/demo.mp4)
+![LingJie-Code 流式决策链演示](assets/demo.gif)
 
 *启动方式：`python web_chat/app.py`，浏览器打开 `http://localhost:8000`（CPU 即可推理，零第三方依赖）。*
 

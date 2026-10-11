@@ -1,0 +1,16 @@
+Dual License — choose whichever applies to you.
+
+Copyright (c) 2026 LingJie Project
+
+This project is dual-licensed under:
+
+  1. GNU General Public License v3.0  (see LICENSE-GPL-3.0)
+     Strong copyleft. Derivative works (including models retrained from
+     these weights and their serving code) must be released under the
+     same license with full corresponding source.
+
+  2. Apache License, Version 2.0      (see LICENSE-APACHE-2.0)
+     Permissive with explicit patent grant and patent-retaliation
+     clause: any party initiating patent litigation loses the license.
+
+SPDX-License-Identifier: GPL-3.0-or-later OR Apache-2.0
